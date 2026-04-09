@@ -23,7 +23,7 @@ function initDB() {
     ];
     localStorage.setItem(DB_USERS_KEY, JSON.stringify(initialUsers));
   }
-  
+
   if (!localStorage.getItem(DB_REPORTS_KEY)) {
     localStorage.setItem(DB_REPORTS_KEY, JSON.stringify([]));
   }

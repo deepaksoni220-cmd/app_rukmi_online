@@ -428,6 +428,41 @@ function renderSalesDashboard() {
       ${renderWorkAssignments()}
       <div class="card mb-6">
         <h3 class="text-xl mb-4">Log Daily Sales metrics</h3>
+        <h4 class="text-lg mb-2 mt-4">Order Details</h4>
+        <div class="input-group" style="flex-direction:row; gap:10px;">
+           <select id="metrics-sales-source-1" class="input" style="flex:1; padding: 0.5rem;">
+             <option value="">Select Platform 1...</option>
+             <option value="Website">Website</option>
+             <option value="Amazon">Amazon</option>
+             <option value="Myntra">Myntra</option>
+             <option value="Insta">Insta</option>
+             <option value="Store">Store</option>
+           </select>
+           <input type="number" id="metrics-sales-qty-1" class="input" placeholder="Qty" min="0" style="width:80px; padding: 0.5rem;">
+        </div>
+        <div class="input-group" style="flex-direction:row; gap:10px;">
+           <select id="metrics-sales-source-2" class="input" style="flex:1; padding: 0.5rem;">
+             <option value="">Select Platform 2...</option>
+             <option value="Website">Website</option>
+             <option value="Amazon">Amazon</option>
+             <option value="Myntra">Myntra</option>
+             <option value="Insta">Insta</option>
+             <option value="Store">Store</option>
+           </select>
+           <input type="number" id="metrics-sales-qty-2" class="input" placeholder="Qty" min="0" style="width:80px; padding: 0.5rem;">
+        </div>
+        <div class="input-group" style="flex-direction:row; gap:10px; margin-bottom: 1.5rem;">
+           <select id="metrics-sales-source-3" class="input" style="flex:1; padding: 0.5rem;">
+             <option value="">Select Platform 3...</option>
+             <option value="Website">Website</option>
+             <option value="Amazon">Amazon</option>
+             <option value="Myntra">Myntra</option>
+             <option value="Insta">Insta</option>
+             <option value="Store">Store</option>
+           </select>
+           <input type="number" id="metrics-sales-qty-3" class="input" placeholder="Qty" min="0" style="width:80px; padding: 0.5rem;">
+        </div>
+        <hr style="border:0; border-top:1px solid var(--border-color); margin:1.5rem 0;">
         <div class="input-group">
            <label>Online Sales Amount / Order Value (₹)</label>
            <input type="number" id="metrics-sales-amount" class="input" min="0" step="0.01">
@@ -619,6 +654,18 @@ function attachEmployeeEvents() {
         enquiry_converted_number: document.getElementById('metrics-enquiry-number').value || 0,
         enquiry_converted_value: document.getElementById('metrics-enquiry-value').value || 0
       };
+
+      const s1 = document.getElementById('metrics-sales-source-1').value;
+      const q1 = document.getElementById('metrics-sales-qty-1').value;
+      if (s1 && q1) data[`Orders_${s1}`] = q1;
+
+      const s2 = document.getElementById('metrics-sales-source-2').value;
+      const q2 = document.getElementById('metrics-sales-qty-2').value;
+      if (s2 && q2) data[`Orders_${s2}`] = q2;
+
+      const s3 = document.getElementById('metrics-sales-source-3').value;
+      const q3 = document.getElementById('metrics-sales-qty-3').value;
+      if (s3 && q3) data[`Orders_${s3}`] = q3;
     } else if (currentUser.department === DEPARTMENTS.CONTENT) {
       data = {
         shoots: document.getElementById('metrics-shoots').value || 0,
