@@ -111,27 +111,13 @@ function renderLogin() {
           <label>Username</label>
           <input type="text" id="loginUsername" class="input" placeholder="Enter your username">
         </div>
-       <div style="position: relative;">
-  <input 
-    type="password" 
-    id="password"
-    placeholder="Enter your password"
-    style="width: 100%; padding-right: 40px;"
-  >
-
-  <span 
-    onclick="togglePassword()" 
-    style="
-      position: absolute;
-      right: 10px;
-      top: 50%;
-      transform: translateY(-50%);
-      cursor: pointer;
-    "
-  >
-    👁️
-  </span>
-</div>
+        <div class="input-group" style="text-align: left;">
+          <label>Password</label>
+          <div style="display: flex;">
+            <input type="password" id="loginPassword" class="input" placeholder="Enter your password" style="flex: 1; border-top-right-radius: 0; border-bottom-right-radius: 0; border-right: none;">
+            <button id="togglePassBtn" class="btn" style="border-top-left-radius: 0; border-bottom-left-radius: 0; padding: 0 1rem; border: 1px solid var(--border-color); background: var(--bg-color);"><i id="togglePassIcon" class="fa-solid fa-eye text-muted"></i></button>
+          </div>
+        </div>
         <button id="loginBtn" class="btn btn-primary w-full mt-4"><i class="fa-solid fa-right-to-bracket"></i> Login</button>
         <p id="loginError" class="text-center mt-4" style="color: var(--danger-color); display: none;">Invalid credentials</p>
       </div>
@@ -140,6 +126,20 @@ function renderLogin() {
 }
 
 function attachLoginEvents() {
+  document.getElementById('togglePassBtn')?.addEventListener('click', () => {
+    const passInput = document.getElementById('loginPassword');
+    const icon = document.getElementById('togglePassIcon');
+    if (passInput.type === 'password') {
+      passInput.type = 'text';
+      icon.classList.remove('fa-eye');
+      icon.classList.add('fa-eye-slash');
+    } else {
+      passInput.type = 'password';
+      icon.classList.remove('fa-eye-slash');
+      icon.classList.add('fa-eye');
+    }
+  });
+
   document.getElementById('loginBtn').addEventListener('click', () => {
     const u = document.getElementById('loginUsername').value;
     const p = document.getElementById('loginPassword').value;
@@ -772,14 +772,6 @@ function attachEmployeeEvents() {
     render(); // refresh
   });
 }
-function togglePassword() {
-  const passwordField = document.getElementById("password");
 
-  if (passwordField.type === "password") {
-    passwordField.type = "text";
-  } else {
-    passwordField.type = "password";
-  }
-}
 // Initial render
 render();
