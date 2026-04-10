@@ -117,6 +117,20 @@ function logLogout(userId) {
   localStorage.setItem(DB_ATTENDANCE_KEY, JSON.stringify(attendance));
 }
 
+
+function logSpecialAttendance(userId, status) {
+  const attendance = getAttendance();
+  const timeStr = new Date().toISOString();
+  attendance.push({
+    id: String(Date.now()),
+    userId: userId,
+    status: status,
+    loginTime: timeStr,
+    logoutTime: timeStr
+  });
+  localStorage.setItem(DB_ATTENDANCE_KEY, JSON.stringify(attendance));
+}
+
 function authenticate(username, password) {
   const users = getUsers();
   const user = users.find(u => u.username === username && u.password === password);

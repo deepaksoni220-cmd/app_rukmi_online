@@ -178,6 +178,17 @@ function renderAttendanceView() {
                ${userLogs.length === 0 ? '<p class="text-muted p-3">No attendance records found.</p>' : ''}
                ${userLogs.map(log => {
                   const day = new Date(log.loginTime).toLocaleDateString();
+                  
+                  if (log.status) {
+                     const color = log.status === 'Absent' ? 'var(--danger-color)' : 'var(--text-muted)';
+                     return `
+                     <div class="flex justify-between items-center p-3" style="border-bottom: 1px solid var(--surface-color); font-size: 0.85rem;">
+                       <strong>${day}</strong>
+                       <strong style="color: ${color}; text-transform: uppercase;">${log.status}</strong>
+                     </div>
+                     `;
+                  }
+
                   const loginTime = new Date(log.loginTime).toLocaleTimeString();
                   const logoutTime = log.logoutTime ? new Date(log.logoutTime).toLocaleTimeString() : 'In Office (Active)';
                   return `
@@ -211,17 +222,28 @@ function renderAdminDashboard() {
   const selectedDate = feedDateFilter || new Date().toISOString().split('T')[0];
   const todaysReports = reports.filter(r => r.date.startsWith(selectedDate));
   
-  // Aggregate sales
+  // Aggregate logic
   let totalSalesValue = 0; let catalogOrderValue = 0; let cataloged = 0; let shoots = 0;
+  let onlineSalesQty = 0; let websiteListingDone = 0; let contentDone = 0; let returnsQty = 0;
+
   todaysReports.forEach(r => {
     if(r.department === DEPARTMENTS.SALES) {
       totalSalesValue += parseFloat(r.data.sales_amount_value || 0);
+      websiteListingDone += parseInt(r.data.website_listing_done || 0);
+      returnsQty += parseInt(r.data.return_orders_qty || 0);
+      Object.keys(r.data).forEach(k => {
+        if (k.startsWith('Orders_')) onlineSalesQty += parseInt(r.data[k] || 0);
+      });
     }
     if(r.department === DEPARTMENTS.CATALOG) {
       cataloged += parseInt(r.data.web_products_done || r.data.items || 0);
       catalogOrderValue += parseFloat(r.data.store_order_value || 0);
+      contentDone += parseInt(r.data.content_done || 0);
+      shoots += parseInt(r.data.content_shooted || 0);
     }
-    if(r.department === DEPARTMENTS.CONTENT) shoots += parseInt(r.data.shoots || 0);
+    if(r.department === DEPARTMENTS.CONTENT) {
+      shoots += parseInt(r.data.shoots || 0);
+    }
   });
 
   return `
@@ -239,16 +261,26 @@ function renderAdminDashboard() {
           <span class="stat-value">₹${parseFloat(totalSalesValue).toFixed(2)}</span>
         </div>
         <div class="stat-card">
+          <span class="text-muted">Online Sales Qty</span>
+          <span class="stat-value">${onlineSalesQty}</span>
+        </div>
+        <div class="stat-card">
+          <span class="text-muted">Return Orders Qty</span>
+          <span class="stat-value">${returnsQty}</span>
+        </div>
+        <div class="stat-card">
           <span class="text-muted">Store Order Value</span>
           <span class="stat-value">₹${parseFloat(catalogOrderValue).toFixed(2)}</span>
         </div>
+
         <div class="stat-card">
-          <span class="text-muted">Web Products Done</span>
-          <span class="stat-value">${cataloged}</span>
+          <span class="text-muted">Website Listing Done</span>
+          <span class="stat-value">${websiteListingDone}</span>
         </div>
+
         <div class="stat-card">
-          <span class="text-muted">Shoots Done</span>
-          <span class="stat-value">${shoots}</span>
+          <span class="text-muted">Content Done</span>
+          <span class="stat-value">${contentDone}</span>
         </div>
       </div>
 
@@ -360,7 +392,19 @@ function attachAdminEvents() {
 function renderAttendanceControl() {
   const attendance = getAttendance();
   const userLogs = attendance.filter(a => a.userId === currentUser.id);
-  // Get the most recent login matching user id.
+  
+  const todayStr = new Date().toLocaleDateString();
+  const todaySpecialRecord = userLogs.find(a => a.status && new Date(a.loginTime).toLocaleDateString() === todayStr);
+
+  if (todaySpecialRecord) {
+     return `
+      <div class="card mb-6" style="border-left: 4px solid var(--text-muted);">
+        <h3 class="text-xl mb-2">Office Attendance</h3>
+        <p class="mb-0">Status: <span style="font-weight: bold; color: var(--text-muted);">${todaySpecialRecord.status}</span></p>
+      </div>
+     `;
+  }
+
   const activeSession = userLogs.length > 0 && !userLogs[userLogs.length - 1].logoutTime ? userLogs[userLogs.length - 1] : null;
 
   if (activeSession) {
@@ -377,7 +421,13 @@ function renderAttendanceControl() {
       <div class="card mb-6" style="border-left: 4px solid var(--border-color);">
         <h3 class="text-xl mb-2">Office Attendance</h3>
         <p class="mb-4">Status: <span class="text-muted">Out of Office</span></p>
-        <button id="checkInBtn" class="btn btn-primary w-full"><i class="fa-solid fa-clock"></i> Check In to Office</button>
+        <div style="display:flex; flex-direction:column; gap:0.5rem;">
+          <button id="checkInBtn" class="btn btn-primary w-full"><i class="fa-solid fa-clock"></i> Check In to Office</button>
+          <div style="display:flex; gap:0.5rem;">
+             <button id="markAbsentBtn" class="btn btn-danger w-full" style="padding: 0.5rem; font-size: 0.9rem;">Mark Absent</button>
+             <button id="markWeekoffBtn" class="btn w-full" style="padding: 0.5rem; font-size: 0.9rem; background: var(--surface-hover); border: 1px solid var(--border-color);">Mark Weekoff</button>
+          </div>
+        </div>
       </div>
     `;
   }
@@ -497,6 +547,10 @@ function renderSalesDashboard() {
         <div class="input-group">
            <label>Customer Enquiry Converted: Value (₹)</label>
            <input type="number" id="metrics-enquiry-value" class="input" min="0" step="0.01">
+        </div>
+        <div class="input-group">
+           <label>Return orders qty</label>
+           <input type="number" id="metrics-returns-qty" class="input" min="0">
         </div>
         <button id="submitMetricsBtn" class="btn btn-primary mt-2 w-full">Submit Report</button>
       </div>
@@ -642,6 +696,16 @@ function attachEmployeeEvents() {
     render();
   });
 
+  document.getElementById('markAbsentBtn')?.addEventListener('click', () => {
+    logSpecialAttendance(currentUser.id, 'Absent');
+    render();
+  });
+
+  document.getElementById('markWeekoffBtn')?.addEventListener('click', () => {
+    logSpecialAttendance(currentUser.id, 'Weekoff');
+    render();
+  });
+
   document.getElementById('submitMetricsBtn')?.addEventListener('click', () => {
     let data = {};
     if (currentUser.department === DEPARTMENTS.SALES) {
@@ -652,7 +716,8 @@ function attachEmployeeEvents() {
         calling_number_of_calls: document.getElementById('metrics-calls-done').value || 0,
         calling_drive_submitted: document.getElementById('metrics-drive-submitted').value,
         enquiry_converted_number: document.getElementById('metrics-enquiry-number').value || 0,
-        enquiry_converted_value: document.getElementById('metrics-enquiry-value').value || 0
+        enquiry_converted_value: document.getElementById('metrics-enquiry-value').value || 0,
+        return_orders_qty: document.getElementById('metrics-returns-qty').value || 0
       };
 
       const s1 = document.getElementById('metrics-sales-source-1').value;
