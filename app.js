@@ -111,10 +111,27 @@ function renderLogin() {
           <label>Username</label>
           <input type="text" id="loginUsername" class="input" placeholder="Enter your username">
         </div>
-        <div class="input-group" style="text-align: left;">
-          <label>Password</label>
-          <input type="password" id="loginPassword" class="input" placeholder="Enter your password">
-        </div>
+       <div style="position: relative;">
+  <input 
+    type="password" 
+    id="password"
+    placeholder="Enter your password"
+    style="width: 100%; padding-right: 40px;"
+  >
+
+  <span 
+    onclick="togglePassword()" 
+    style="
+      position: absolute;
+      right: 10px;
+      top: 50%;
+      transform: translateY(-50%);
+      cursor: pointer;
+    "
+  >
+    👁️
+  </span>
+</div>
         <button id="loginBtn" class="btn btn-primary w-full mt-4"><i class="fa-solid fa-right-to-bracket"></i> Login</button>
         <p id="loginError" class="text-center mt-4" style="color: var(--danger-color); display: none;">Invalid credentials</p>
       </div>
